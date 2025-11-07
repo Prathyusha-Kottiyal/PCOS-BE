@@ -15,7 +15,9 @@ const validateSignupData = (req) => {
 
 const validateDailyPlanData = (req) => {
   const allowedFields = ["day", "meals", "workoutIds", "qoute", "quote"];
-  const hasOnlyAllowed = Object.keys(req.body).every((f) => allowedFields.includes(f));
+  const hasOnlyAllowed = Object.keys(req.body).every((f) =>
+    allowedFields.includes(f)
+  );
   if (!hasOnlyAllowed) {
     throw new Error("Unexpected fields in daily plan payload");
   }
@@ -32,10 +34,20 @@ const validateDailyPlanData = (req) => {
 
   // Meals
   if (!meals || typeof meals !== "object" || Array.isArray(meals)) {
-    throw new Error("Meals must be an object with breakfast, lunch, and/or dinner arrays");
+    throw new Error(
+      "Meals must be an object with breakfast, lunch, and/or dinner arrays"
+    );
   }
 
-  const mealTypes = ["breakfast", "lunch", "dinner"];
+  const mealTypes = [
+    "breakfast",
+    "lunch",
+    "dinner",
+    "emptyStomach",
+    "midMorning",
+    "evening",
+    " beforeBed",
+  ];
   mealTypes.forEach((m) => {
     if (meals[m] !== undefined) {
       if (!Array.isArray(meals[m])) {
@@ -48,25 +60,49 @@ const validateDailyPlanData = (req) => {
         }
 
         // Validate title
-        if (!meal.title || typeof meal.title !== "string" || meal.title.trim().length === 0) {
-          throw new Error(`Meal at index ${index} in ${m} must have a non-empty title`);
+        if (
+          !meal.title ||
+          typeof meal.title !== "string" ||
+          meal.title.trim().length === 0
+        ) {
+          throw new Error(
+            `Meal at index ${index} in ${m} must have a non-empty title`
+          );
         }
 
         // Validate recipes
-        if (!Array.isArray(meal.recipes) || meal.recipes.length === 0) {
-          throw new Error(`Meal "${meal.title}" in ${m} must have at least one recipe`);
-        }
-        if (!meal.recipes.every((id) => typeof id === "string" && id.trim().length > 0)) {
-          throw new Error(`Each recipe ID in meal "${meal.title}" must be a non-empty string`);
+        if (meal.recipes !== undefined) {
+          if (!Array.isArray(meal.recipes) || meal.recipes.length === 0) {
+            throw new Error(
+              `Meal "${meal.title}" in ${m} must have at least one recipe`
+            );
+          }
+          if (
+            !meal.recipes.every(
+              (id) => typeof id === "string" && id.trim().length > 0
+            )
+          ) {
+            throw new Error(
+              `Each recipe ID in meal "${meal.title}" must be a non-empty string`
+            );
+          }
         }
 
         // Validate alternateRecipes (optional)
         if (meal.alternateRecipes !== undefined) {
           if (!Array.isArray(meal.alternateRecipes)) {
-            throw new Error(`alternateRecipes for meal "${meal.title}" must be an array`);
+            throw new Error(
+              `alternateRecipes for meal "${meal.title}" must be an array`
+            );
           }
-          if (!meal.alternateRecipes.every((id) => typeof id === "string" && id.trim().length > 0)) {
-            throw new Error(`Each alternateRecipe ID in meal "${meal.title}" must be a non-empty string`);
+          if (
+            !meal.alternateRecipes.every(
+              (id) => typeof id === "string" && id.trim().length > 0
+            )
+          ) {
+            throw new Error(
+              `Each alternateRecipe ID in meal "${meal.title}" must be a non-empty string`
+            );
           }
         }
 
@@ -76,7 +112,9 @@ const validateDailyPlanData = (req) => {
             throw new Error(`notes for meal "${meal.title}" must be a string`);
           }
           if (meal.notes.length > 1000) {
-            throw new Error(`notes for meal "${meal.title}" is too long (max 1000 characters)`);
+            throw new Error(
+              `notes for meal "${meal.title}" is too long (max 1000 characters)`
+            );
           }
         }
       });
@@ -88,7 +126,9 @@ const validateDailyPlanData = (req) => {
     if (!Array.isArray(workoutIds)) {
       throw new Error("workoutIds must be an array of strings");
     }
-    if (!workoutIds.every((id) => typeof id === "string" && id.trim().length > 0)) {
+    if (
+      !workoutIds.every((id) => typeof id === "string" && id.trim().length > 0)
+    ) {
       throw new Error("Each workoutId must be a non-empty string");
     }
   }
@@ -107,7 +147,6 @@ const validateDailyPlanData = (req) => {
   return true;
 };
 
-
 const validateEditProfile = (req) => {
   const allowedUpdates = [
     "name",
@@ -117,20 +156,22 @@ const validateEditProfile = (req) => {
     "height",
     "weight",
   ];
-  const isAllowedEdit= Object.keys(req.body).every((field) => allowedUpdates.includes(field));
+  const isAllowedEdit = Object.keys(req.body).every((field) =>
+    allowedUpdates.includes(field)
+  );
   return isAllowedEdit;
 };
 const validateUpdatePassword = (req) => {
-  const allowedUpdates = [
-    "newPassword",
-    "existingPassword",
-  ];
-  const isAllowedEdit= Object.keys(req.body).every((field) => allowedUpdates.includes(field));
+  const allowedUpdates = ["newPassword", "existingPassword"];
+  const isAllowedEdit = Object.keys(req.body).every((field) =>
+    allowedUpdates.includes(field)
+  );
   return isAllowedEdit;
 };
 
 const validateRecipeData = (req) => {
-  const { title, description, image, prepTime, cookTime, ingredients, steps } = req.body;
+  const { title, description, image, prepTime, cookTime, ingredients, steps } =
+    req.body;
 
   if (!title || title.trim() === "") {
     throw new Error("Title is required");
@@ -146,14 +187,15 @@ const validateRecipeData = (req) => {
   }
   if (!Array.isArray(ingredients) || ingredients.length === 0) {
     throw new Error("At least one ingredient is required");
-  }     
+  }
   if (!Array.isArray(steps) || steps.length === 0) {
     throw new Error("At least one step is required");
   }
 };
 
 const validateYogaData = (req) => {
-  const { title, description, image, duration, type, tags, youtubeId } = req.body;
+  const { title, description, image, duration, type, tags, youtubeId } =
+    req.body;
 
   // Title
   if (!title || title.trim() === "") {
@@ -172,13 +214,17 @@ const validateYogaData = (req) => {
 
   // Duration
   if (!duration || typeof duration !== "string" || duration.trim() === "") {
-    throw new Error("Duration is required and should be a string (e.g., '20 mins')");
+    throw new Error(
+      "Duration is required and should be a string (e.g., '20 mins')"
+    );
   }
 
   // Type
   const validTypes = ["Yoga", "Meditation", "Workout"];
   if (!type || !validTypes.includes(type)) {
-    throw new Error(`Type is required and must be one of: ${validTypes.join(", ")}`);
+    throw new Error(
+      `Type is required and must be one of: ${validTypes.join(", ")}`
+    );
   }
 
   // Tags
@@ -203,7 +249,9 @@ const validateProgressData = (req) => {
     throw new Error("Invalid payload");
   }
 
-  const hasOnlyAllowed = Object.keys(req.body).every((f) => allowedFields.includes(f));
+  const hasOnlyAllowed = Object.keys(req.body).every((f) =>
+    allowedFields.includes(f)
+  );
   if (!hasOnlyAllowed) {
     throw new Error("Unexpected fields in progress payload");
   }
@@ -248,7 +296,6 @@ const validateProgressData = (req) => {
       throw new Error("Notes cannot exceed 200 characters");
     }
   }
-
 };
 
 module.exports = {
@@ -259,5 +306,5 @@ module.exports = {
   validateYogaData,
   validateDailyPlanData,
   validateProgressData,
-  validateYogaData
+  validateYogaData,
 };

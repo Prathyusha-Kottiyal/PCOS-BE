@@ -1,15 +1,12 @@
-// ...existing code...
-const mongoose = require("mongoose");
 
-const mealArrayValidator = (arr) =>
-  Array.isArray(arr) && arr.every((s) => typeof s === "string" && s.trim().length > 0);
+const mongoose = require("mongoose");
 
 
 const mealItemSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     recipes: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Recipe", required: true }
+      { type: mongoose.Schema.Types.ObjectId, ref: "Recipe"}
     ],
     alternateRecipes: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Recipe" }
@@ -21,9 +18,13 @@ const mealItemSchema = new mongoose.Schema(
 
 const mealsSchema = new mongoose.Schema(
   {
+    emptyStomach: { type: [mealItemSchema], default: [] },
     breakfast: { type: [mealItemSchema], default: [] },
+    midMorning: { type: [mealItemSchema], default: [] },
     lunch: { type: [mealItemSchema], default: [] },
-    dinner: { type: [mealItemSchema], default: [] }
+    evening: { type: [mealItemSchema], default: [] },
+    dinner: { type: [mealItemSchema], default: [] },
+    beforeBed: { type: [mealItemSchema], default: [] },
   },
   { _id: false }
 );
