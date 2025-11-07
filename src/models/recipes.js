@@ -16,7 +16,7 @@ const recipeSchema = new mongoose.Schema(
       type: String,
       validate: {
         validator: function (value) {
-          return /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(value);
+          return !value || /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(value);
         },
         message: "Invalid image URL format",
       },

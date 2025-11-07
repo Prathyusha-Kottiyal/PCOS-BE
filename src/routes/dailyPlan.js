@@ -7,16 +7,27 @@ router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-    if (limit > 50) {
-      limit = 50;
-    }
+    if (limit > 50) limit = 50;
     const skip = (page - 1) * limit;
-    const dailyPlan = await DailyPlan.find({}).skip(skip).limit(limit);
-    res.json({ message: "data fetched successfully", data: dailyPlan });
+
+    // Fetch daily plans and populate all recipe fields
+    const dailyPlans = await DailyPlan.find({})
+      .skip(skip)
+      .limit(limit)
+      .populate("meals.breakfast.recipes", "title image")
+      .populate("meals.breakfast.alternateRecipes","title image")
+      .populate("meals.lunch.recipes","title image")
+      .populate("meals.lunch.alternateRecipes","title image")
+      .populate("meals.dinner.recipes","title image")
+      .populate("meals.dinner.alternateRecipes","title image")
+      .exec();
+
+    res.json({ message: "Data fetched successfully", data: dailyPlans });
   } catch (err) {
-    res.status(400).send("Error :" + err.message);
+    res.status(400).send("Error: " + err.message);
   }
 });
+
 
 router.post("/", async (req, res) => {
   try {

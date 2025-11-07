@@ -18,6 +18,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid workout ID" });
+    }
+
+    const workout = await Yoga.findById(id);
+
+    if (!workout) {
+      return res.status(404).json({ message: "workout not found" });
+    }
+
+    res.json({ message: "workout fetched successfully", data: workout });
+  } catch (err) {
+    res.status(400).json({ message: "Error fetching workout: " + err.message });
+  }
+});
+
 router.post("/", async (req, res) => {
   try {
     validateYogaData(req);

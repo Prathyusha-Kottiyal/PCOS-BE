@@ -32,17 +32,54 @@ const validateDailyPlanData = (req) => {
 
   // Meals
   if (!meals || typeof meals !== "object" || Array.isArray(meals)) {
-    throw new Error("Meals must be an object with breakfast, lunch and/or dinner arrays");
+    throw new Error("Meals must be an object with breakfast, lunch, and/or dinner arrays");
   }
+
   const mealTypes = ["breakfast", "lunch", "dinner"];
   mealTypes.forEach((m) => {
     if (meals[m] !== undefined) {
       if (!Array.isArray(meals[m])) {
-        throw new Error(`${m} must be an array of strings`);
+        throw new Error(`${m} must be an array of meal objects`);
       }
-      if (!meals[m].every((it) => typeof it === "string" && it.trim().length > 0)) {
-        throw new Error(`Each item in ${m} must be a non-empty string`);
-      }
+
+      meals[m].forEach((meal, index) => {
+        if (typeof meal !== "object" || meal === null) {
+          throw new Error(`Each item in ${m} must be an object`);
+        }
+
+        // Validate title
+        if (!meal.title || typeof meal.title !== "string" || meal.title.trim().length === 0) {
+          throw new Error(`Meal at index ${index} in ${m} must have a non-empty title`);
+        }
+
+        // Validate recipes
+        if (!Array.isArray(meal.recipes) || meal.recipes.length === 0) {
+          throw new Error(`Meal "${meal.title}" in ${m} must have at least one recipe`);
+        }
+        if (!meal.recipes.every((id) => typeof id === "string" && id.trim().length > 0)) {
+          throw new Error(`Each recipe ID in meal "${meal.title}" must be a non-empty string`);
+        }
+
+        // Validate alternateRecipes (optional)
+        if (meal.alternateRecipes !== undefined) {
+          if (!Array.isArray(meal.alternateRecipes)) {
+            throw new Error(`alternateRecipes for meal "${meal.title}" must be an array`);
+          }
+          if (!meal.alternateRecipes.every((id) => typeof id === "string" && id.trim().length > 0)) {
+            throw new Error(`Each alternateRecipe ID in meal "${meal.title}" must be a non-empty string`);
+          }
+        }
+
+        // Validate notes (optional)
+        if (meal.notes !== undefined) {
+          if (typeof meal.notes !== "string") {
+            throw new Error(`notes for meal "${meal.title}" must be a string`);
+          }
+          if (meal.notes.length > 1000) {
+            throw new Error(`notes for meal "${meal.title}" is too long (max 1000 characters)`);
+          }
+        }
+      });
     }
   });
 
@@ -101,9 +138,6 @@ const validateRecipeData = (req) => {
   if (!description || description.trim() === "") {
     throw new Error("Description is required");
   }
-  // if (!image || !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(image)) {
-  //   throw new Error("Valid image URL is required");
-  // }
   if (!prepTime || prepTime.trim() === "") {
     throw new Error("Preparation time is required");
   }
