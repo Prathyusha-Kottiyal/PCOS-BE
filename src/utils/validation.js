@@ -101,9 +101,9 @@ const validateRecipeData = (req) => {
   if (!description || description.trim() === "") {
     throw new Error("Description is required");
   }
-  if (!image || !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(image)) {
-    throw new Error("Valid image URL is required");
-  }
+  // if (!image || !/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(image)) {
+  //   throw new Error("Valid image URL is required");
+  // }
   if (!prepTime || prepTime.trim() === "") {
     throw new Error("Preparation time is required");
   }
