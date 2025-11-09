@@ -14,7 +14,7 @@ const validateSignupData = (req) => {
 };
 
 const validateDailyPlanData = (req) => {
-  const allowedFields = ["day", "meals", "workoutIds", "qoute", "quote"];
+  const allowedFields = ["day", "meals", "workouts", "qoute", "quote"];
   const hasOnlyAllowed = Object.keys(req.body).every((f) =>
     allowedFields.includes(f)
   );
@@ -22,9 +22,9 @@ const validateDailyPlanData = (req) => {
     throw new Error("Unexpected fields in daily plan payload");
   }
 
-  const { day, meals, workoutIds, qoute, quote } = req.body;
+  const { day, meals, workouts, qoute, quote } = req.body;
 
-  // Day
+  // ---- Day ----
   if (day === undefined || day === null) {
     throw new Error("Day is required");
   }
@@ -32,7 +32,7 @@ const validateDailyPlanData = (req) => {
     throw new Error("Day must be an integer greater than or equal to 1");
   }
 
-  // Meals
+  // ---- Meals ----
   if (!meals || typeof meals !== "object" || Array.isArray(meals)) {
     throw new Error(
       "Meals must be an object with breakfast, lunch, and/or dinner arrays"
@@ -40,14 +40,15 @@ const validateDailyPlanData = (req) => {
   }
 
   const mealTypes = [
-    "breakfast",
-    "lunch",
-    "dinner",
     "emptyStomach",
+    "breakfast",
     "midMorning",
+    "lunch",
     "evening",
-    " beforeBed",
+    "dinner",
+    "beforeBed",
   ];
+
   mealTypes.forEach((m) => {
     if (meals[m] !== undefined) {
       if (!Array.isArray(meals[m])) {
@@ -72,9 +73,9 @@ const validateDailyPlanData = (req) => {
 
         // Validate recipes
         if (meal.recipes !== undefined) {
-          if (!Array.isArray(meal.recipes) || meal.recipes.length === 0) {
+          if (!Array.isArray(meal.recipes)) {
             throw new Error(
-              `Meal "${meal.title}" in ${m} must have at least one recipe`
+              `recipes for meal "${meal.title}" must be an array if provided`
             );
           }
           if (
@@ -88,7 +89,7 @@ const validateDailyPlanData = (req) => {
           }
         }
 
-        // Validate alternateRecipes (optional)
+        // Validate alternateRecipes
         if (meal.alternateRecipes !== undefined) {
           if (!Array.isArray(meal.alternateRecipes)) {
             throw new Error(
@@ -106,7 +107,7 @@ const validateDailyPlanData = (req) => {
           }
         }
 
-        // Validate notes (optional)
+        // Validate notes
         if (meal.notes !== undefined) {
           if (typeof meal.notes !== "string") {
             throw new Error(`notes for meal "${meal.title}" must be a string`);
@@ -121,19 +122,96 @@ const validateDailyPlanData = (req) => {
     }
   });
 
-  // workoutIds
-  if (workoutIds !== undefined) {
-    if (!Array.isArray(workoutIds)) {
-      throw new Error("workoutIds must be an array of strings");
+  // ---- Workouts ----
+  if (workouts !== undefined) {
+    if (!Array.isArray(workouts)) {
+      throw new Error("workouts must be an array of objects");
     }
-    if (
-      !workoutIds.every((id) => typeof id === "string" && id.trim().length > 0)
-    ) {
-      throw new Error("Each workoutId must be a non-empty string");
-    }
+
+    workouts.forEach((workout, wIndex) => {
+      if (typeof workout !== "object" || workout === null) {
+        throw new Error(`Workout at index ${wIndex} must be an object`);
+      }
+
+      // Title
+      if (
+        !workout.title ||
+        typeof workout.title !== "string" ||
+        workout.title.trim().length === 0
+      ) {
+        throw new Error(
+          `Workout at index ${wIndex} must have a non-empty title`
+        );
+      }
+
+      // followAlongFullVideo (optional)
+      if (
+        workout.followAlongFullVideo !== undefined &&
+        typeof workout.followAlongFullVideo !== "string"
+      ) {
+        throw new Error(
+          `followAlongFullVideo for workout "${workout.title}" must be a string (Yoga ObjectId)`
+        );
+      }
+
+      // subVideos
+      if (workout.subVideos !== undefined) {
+        if (!Array.isArray(workout.subVideos)) {
+          throw new Error(
+            `subVideos for workout "${workout.title}" must be an array`
+          );
+        }
+
+        workout.subVideos.forEach((sub, sIndex) => {
+          if (typeof sub !== "object" || sub === null) {
+            throw new Error(
+              `SubVideo at index ${sIndex} in workout "${workout.title}" must be an object`
+            );
+          }
+
+          if (
+            !sub.title ||
+            typeof sub.title !== "string" ||
+            sub.title.trim().length === 0
+          ) {
+            throw new Error(
+              `Each subVideo in workout "${workout.title}" must have a non-empty title`
+            );
+          }
+
+          if (
+            sub.workoutId !== undefined &&
+            typeof sub.workoutId !== "string"
+          ) {
+            throw new Error(
+              `workoutId in subVideo "${sub.title}" must be a string (Yoga ObjectId)`
+            );
+          }
+
+          if (sub.duration !== undefined && typeof sub.duration !== "string") {
+            throw new Error(
+              `duration in subVideo "${sub.title}" must be a string`
+            );
+          }
+
+          if (sub.notes !== undefined && typeof sub.notes !== "string") {
+            throw new Error(
+              `notes in subVideo "${sub.title}" must be a string`
+            );
+          }
+        });
+      }
+
+      // Notes (optional)
+      if (workout.notes !== undefined && typeof workout.notes !== "string") {
+        throw new Error(
+          `notes for workout "${workout.title}" must be a string`
+        );
+      }
+    });
   }
 
-  // Quote (accept either 'qoute' or 'quote')
+  // ---- Quote ----
   const q = qoute ?? quote;
   if (q !== undefined) {
     if (typeof q !== "string" || q.trim().length === 0) {
@@ -194,8 +272,15 @@ const validateRecipeData = (req) => {
 };
 
 const validateYogaData = (req) => {
-  const { title, description, image, duration, type, tags, youtubeId } =
-    req.body;
+  const {
+    title,
+    description,
+    image,
+    duration,
+    youtubeId,
+    notes,
+    instructions,
+  } = req.body;
 
   // Title
   if (!title || title.trim() === "") {
@@ -219,27 +304,27 @@ const validateYogaData = (req) => {
     );
   }
 
-  // Type
-  const validTypes = ["Yoga", "Meditation", "Workout"];
-  if (!type || !validTypes.includes(type)) {
-    throw new Error(
-      `Type is required and must be one of: ${validTypes.join(", ")}`
-    );
-  }
-
-  // Tags
-  if (!tags || !Array.isArray(tags) || tags.length === 0) {
-    throw new Error("At least one tag is required");
-  }
-  tags.forEach((tag) => {
-    if (typeof tag !== "string" || tag.trim() === "") {
-      throw new Error("Each tag must be a non-empty string");
-    }
-  });
-
   // YouTube ID
   if (!youtubeId || typeof youtubeId !== "string" || youtubeId.trim() === "") {
     throw new Error("Valid YouTube ID is required");
+  }
+
+  // Optional Notes
+  if (notes && (typeof notes !== "string" || notes.trim() === "")) {
+    throw new Error("Notes, if provided, must be a non-empty string");
+  }
+
+  if (instructions) {
+    if (!Array.isArray(instructions) || instructions.length === 0) {
+      throw new Error(
+        "Instructions, if provided, must be a non-empty array of strings"
+      );
+    }
+    instructions.forEach((step) => {
+      if (typeof step !== "string" || step.trim() === "") {
+        throw new Error("Each instruction must be a non-empty string");
+      }
+    });
   }
 };
 

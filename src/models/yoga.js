@@ -28,28 +28,18 @@ const yogaSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    type: {
-      type: String,
-      required: true,
-      enum: ["Yoga", "Meditation", "Workout"],
-    },
-    tags: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: function (v) {
-          return v.length > 0;
-        },
-        message: () => `At least one tag is required`,
-      },
-    },
     youtubeId: {
       type: String,
       required: true,
     },
+    instructions: {
+      type: [String],
+    },
+    notes: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model("Yoga", yogaSchema);
