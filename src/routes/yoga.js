@@ -6,7 +6,7 @@ const { validateYogaData } = require("../utils/validation");
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    let limit = parseInt(req.query.limit) || 50;
     if (limit > 50) {
       limit = 50;
     }
