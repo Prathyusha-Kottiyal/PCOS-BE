@@ -20,8 +20,8 @@ router.get("/", async (req, res) => {
       .populate("meals.lunch.alternateRecipes", "title image")
       .populate("meals.dinner.recipes", "title image")
       .populate("meals.dinner.alternateRecipes", "title image")
-      .populate("workouts.subVideos.workoutId", "title level duration videoUrl")
-      .populate("workouts.followAlongFullVideo", "title duration videoUrl image")
+      .populate("workouts.subVideos.workoutId", "title level duration videoUrl isPeriodFriendly")
+      .populate("workouts.followAlongFullVideo", "title duration videoUrl image isPeriodFriendly")
       .exec();
 
     res.json({ message: "Data fetched successfully", data: dailyPlans });
@@ -66,8 +66,8 @@ router.get("/:day", async (req, res) => {
       .populate("meals.lunch.alternateRecipes", "title image")
       .populate("meals.dinner.recipes", "title image")
       .populate("meals.dinner.alternateRecipes", "title image")
-      .populate("workouts.subVideos.workoutId", "title duration videoUrl image")
-      .populate("workouts.followAlongFullVideo", "title duration videoUrl image")
+      .populate("workouts.subVideos.workoutId", "title duration videoUrl image isPeriodFriendly")
+      .populate("workouts.followAlongFullVideo", "title duration videoUrl image isPeriodFriendly")
       .exec();
 
     if (!dailyPlan) {

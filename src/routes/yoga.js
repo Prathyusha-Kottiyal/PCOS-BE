@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
   try {
     validateYogaData(req);
     const { title, description, image, duration, youtubeId, instructions,
-      notes } =
+      notes, isPeriodFriendly } =
       req.body;
 
     const yogaObject = {
@@ -53,7 +53,8 @@ router.post("/", async (req, res) => {
       duration,
       youtubeId,
       instructions,
-      notes
+      notes,
+      isPeriodFriendly
     };
 
     const yoga = new Yoga(yogaObject);

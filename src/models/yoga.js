@@ -38,6 +38,10 @@ const yogaSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+    isPeriodFriendly: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

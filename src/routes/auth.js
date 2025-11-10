@@ -9,10 +9,7 @@ router.post("/signup", async (req, res) => {
     // validation logic here
     validateSignupData(req);
     // encript the password
-    const { name, emailId, password,  dob,
-      photoUrl,
-      height,
-      weight } = req.body;
+    const { name, emailId, password, dob, photoUrl, height, weight } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10); // salt rounds = 10, more the number more secure but slower
 
     // Signup logic here
@@ -25,20 +22,23 @@ router.post("/signup", async (req, res) => {
       height,
       weight,
       resetPlan: {
-        startDate: new Date()
-      }
+        startDate: new Date(),
+      },
     };
     // create a new instance of User model
 
     const user = new User(userObject);
     await user.save();
-    res.send(user);
+    const token = await user.getJWT();
+    res.status(200).json({
+      message: "Registration successful",
+      token,
+      user,
+    });
   } catch (err) {
     res.status(400).send("Error signing up user" + err.message);
   }
 });
-
-
 
 router.post("/login", async (req, res) => {
   try {
@@ -61,14 +61,15 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 router.post("/logout", async (req, res) => {
   try {
     //clean up actions here before logout
-    res.cookie("token", null, { expires: new Date(0) }).send("Logout successful");
+    res
+      .cookie("token", null, { expires: new Date(0) })
+      .send("Logout successful");
   } catch (err) {
     res.status(400).send("Error logging in user" + err.message);
   }
-});    
+});
 
 module.exports = router;

@@ -280,6 +280,7 @@ const validateYogaData = (req) => {
     youtubeId,
     notes,
     instructions,
+    isPeriodFriendly,
   } = req.body;
 
   // Title
@@ -314,6 +315,7 @@ const validateYogaData = (req) => {
     throw new Error("Notes, if provided, must be a non-empty string");
   }
 
+  // Instructions
   if (instructions) {
     if (!Array.isArray(instructions) || instructions.length === 0) {
       throw new Error(
@@ -325,6 +327,14 @@ const validateYogaData = (req) => {
         throw new Error("Each instruction must be a non-empty string");
       }
     });
+  }
+
+  // Optional isPeriodFriendly
+  if (
+    isPeriodFriendly !== undefined &&
+    typeof isPeriodFriendly !== "boolean"
+  ) {
+    throw new Error("isPeriodFriendly, if provided, must be a boolean");
   }
 };
 
