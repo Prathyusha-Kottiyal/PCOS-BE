@@ -2,7 +2,8 @@ const express = require("express");
 const connectDb = require("./config/database");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
+const PORT =  3000;
 
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
