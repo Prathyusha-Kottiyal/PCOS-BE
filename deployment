@@ -1,0 +1,37 @@
+signup on aws
+launch EC2 instance
+create key value pair
+change permision of downloaded key pair - chmod 400 "pcoscare_keypair.pem"
+instance - ec2-56-228-25-114.eu-north-1.compute.amazonaws.com
+ssh -i "pcoscare_keypair.pem" ubuntu@ec2-56-228-25-114.eu-north-1.compute.amazonaws.com 
+
+install node
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install 24.9.0 // same version as local machine
+git clone https://github.com/Prathyusha-Kottiyal/PCOS-BE.git
+cd PCOS-BE
+npm install
+npm run start 
+
+npm i pm2 -g - install pm2 for keeping instance open , other wise will stop when system not running
+pm2 start npm -- start //run via pm2 , npm is the default name of the process 
+pm2 logs
+pm2 flush npm- flushing the logs
+pm2 list
+pm2 stop npm
+pm2 delete npm
+pm2 start npm --name pcosbe -- start - give custom name to the process
+map path /api tp 3000 node application ngix
+sudo apt update
+sudo apt install nginx -y
+sudo nano /etc/nginx/sites-available/default
+ server_name 56.228.25.114
+ location /api/ {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+sudo systemctl restart nginx -restart nginx 
