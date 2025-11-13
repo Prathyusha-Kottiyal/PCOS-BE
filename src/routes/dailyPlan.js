@@ -3,6 +3,7 @@ const router = express.Router();
 const DailyPlan = require("../models/dailyPlan");
 const { validateDailyPlanData } = require("../utils/validation");
 
+
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -10,8 +11,9 @@ router.get("/", async (req, res) => {
     if (limit > 50) limit = 50;
     const skip = (page - 1) * limit;
 
-    // Fetch daily plans and populate all recipe fields
+    // Fetch and sort by `day`
     const dailyPlans = await DailyPlan.find({})
+      .sort({ day: 1 }) // 👈 ascending order by 'day'
       .skip(skip)
       .limit(limit)
       .populate("meals.breakfast.recipes", "title image")
@@ -19,11 +21,11 @@ router.get("/", async (req, res) => {
       .populate("meals.lunch.recipes", "title image")
       .populate("meals.lunch.alternateRecipes", "title image")
       .populate("meals.dinner.recipes", "title image")
+      .populate("meals.dinner.alternateRecipes", "title image")
       .populate("meals.midMorning.recipes", "title image")
       .populate("meals.midMorning.alternateRecipes", "title image")
       .populate("meals.emptyStomach.recipes", "title image")
       .populate("meals.emptyStomach.alternateRecipes", "title image")
-      .populate("meals.dinner.alternateRecipes", "title image")
       .populate("workouts.subVideos.workoutId", "title level duration videoUrl isPeriodFriendly")
       .populate("workouts.followAlongFullVideo", "title duration videoUrl image isPeriodFriendly")
       .exec();
@@ -33,6 +35,37 @@ router.get("/", async (req, res) => {
     res.status(400).send("Error: " + err.message);
   }
 });
+
+// router.get("/", async (req, res) => {
+//   try {
+//     const page = parseInt(req.query.page) || 1;
+//     let limit = parseInt(req.query.limit) || 10;
+//     if (limit > 50) limit = 50;
+//     const skip = (page - 1) * limit;
+
+//     // Fetch daily plans and populate all recipe fields
+//     const dailyPlans = await DailyPlan.find({})
+//       .skip(skip)
+//       .limit(limit)
+//       .populate("meals.breakfast.recipes", "title image")
+//       .populate("meals.breakfast.alternateRecipes", "title image")
+//       .populate("meals.lunch.recipes", "title image")
+//       .populate("meals.lunch.alternateRecipes", "title image")
+//       .populate("meals.dinner.recipes", "title image")
+//       .populate("meals.midMorning.recipes", "title image")
+//       .populate("meals.midMorning.alternateRecipes", "title image")
+//       .populate("meals.emptyStomach.recipes", "title image")
+//       .populate("meals.emptyStomach.alternateRecipes", "title image")
+//       .populate("meals.dinner.alternateRecipes", "title image")
+//       .populate("workouts.subVideos.workoutId", "title level duration videoUrl isPeriodFriendly")
+//       .populate("workouts.followAlongFullVideo", "title duration videoUrl image isPeriodFriendly")
+//       .exec();
+
+//     res.json({ message: "Data fetched successfully", data: dailyPlans });
+//   } catch (err) {
+//     res.status(400).send("Error: " + err.message);
+//   }
+// });
 
 router.post("/", async (req, res) => {
   try {
