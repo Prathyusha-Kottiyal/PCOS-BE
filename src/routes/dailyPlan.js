@@ -89,5 +89,40 @@ router.get("/:day", async (req, res) => {
   }
 });
 
+router.put("/:day", async (req, res) => {
+  try {
+    const { day } = req.params; // get day from URL
+    validateDailyPlanData(req);
 
+    const { meals, workouts, quote } = req.body;
+
+    if (!day) return res.status(400).json({ message: "Day parameter is required" });
+
+    // Find plan by day and update
+    const updatedPlan = await DailyPlan.findOneAndUpdate(
+      { day: parseInt(day) },  // filter by day (as number)
+      { meals, workouts, quote }, // update fields
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedPlan)
+      return res.status(404).json({ message: `Daily plan for day ${day} not found` });
+
+    res.json({ message: "Daily plan updated successfully", data: updatedPlan });
+  } catch (err) {
+    res.status(400).json({ message: "Error updating daily plan: " + err.message });
+  }
+});
+
+// Delete daily plan by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedPlan = await DailyPlan.findByIdAndDelete(id);
+    if (!deletedPlan) return res.status(404).json({ message: "Daily plan not found" });
+    res.json({ message: "Daily plan deleted successfully", data: deletedPlan });
+  } catch (err) {
+    res.status(400).json({ message: "Error deleting daily plan: " + err.message });
+  }
+});
 module.exports = router;

@@ -97,6 +97,74 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid recipe ID" });
+    }
+
+    validateRecipeData(req); // reuse your existing validation
+
+    const {
+      title,
+      description,
+      image,
+      video,
+      tags,
+      prepTime,
+      cookTime,
+      ingredients,
+      steps,
+    } = req.body;
+
+    const updatedRecipe = await Recipes.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        image,
+        video,
+        tags,
+        prepTime,
+        cookTime,
+        ingredients,
+        steps,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedRecipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    res.json({ message: "Recipe updated successfully", data: updatedRecipe });
+  } catch (err) {
+    res.status(400).json({ message: "Error updating recipe: " + err.message });
+  }
+});
+
+// DELETE recipe by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid recipe ID" });
+    }
+
+    const deletedRecipe = await Recipes.findByIdAndDelete(id);
+
+    if (!deletedRecipe) return res.status(404).json({ message: "Recipe not found" });
+
+    res.json({ message: "Recipe deleted successfully", data: deletedRecipe });
+  } catch (err) {
+    res.status(400).json({ message: "Error deleting recipe: " + err.message });
+  }
+});
+
 
 
 module.exports = router;

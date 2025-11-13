@@ -65,4 +65,52 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Edit / Update yoga
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid workout ID" });
+    }
+
+    validateYogaData(req);
+
+    const { title, description, image, duration, youtubeId, instructions, notes, isPeriodFriendly } = req.body;
+
+    const updatedYoga = await Yoga.findByIdAndUpdate(
+      id,
+      { title, description, image, duration, youtubeId, instructions, notes, isPeriodFriendly },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedYoga) return res.status(404).json({ message: "Workout not found" });
+
+    res.json({ message: "Workout updated successfully", data: updatedYoga });
+  } catch (err) {
+    res.status(400).json({ message: "Error updating workout: " + err.message });
+  }
+});
+
+// DELETE yoga by ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid workout ID" });
+    }
+
+    const deletedYoga = await Yoga.findByIdAndDelete(id);
+
+    if (!deletedYoga) return res.status(404).json({ message: "Workout not found" });
+
+    res.json({ message: "Workout deleted successfully", data: deletedYoga });
+  } catch (err) {
+    res.status(400).json({ message: "Error deleting workout: " + err.message });
+  }
+});
+
+
+
 module.exports = router;

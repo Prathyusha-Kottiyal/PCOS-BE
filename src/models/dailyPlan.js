@@ -78,6 +78,8 @@ const dailyPlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+
 dailyPlanSchema.index({ day: 1 }, { unique: true });
 
 module.exports = mongoose.model("DailyPlan", dailyPlanSchema);
