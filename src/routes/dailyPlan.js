@@ -9,11 +9,15 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     if (limit > 50) limit = 50;
+
     const skip = (page - 1) * limit;
 
-    // Fetch and sort by `day`
+    // Get total number of daily plans
+    const totalCount = await DailyPlan.countDocuments({});
+
+    // Fetch paginated & sorted data
     const dailyPlans = await DailyPlan.find({})
-      .sort({ day: 1 }) // 👈 ascending order by 'day'
+      .sort({ day: 1 }) // ascending order by 'day'
       .skip(skip)
       .limit(limit)
       .populate("meals.breakfast.recipes", "title image")
@@ -26,15 +30,26 @@ router.get("/", async (req, res) => {
       .populate("meals.midMorning.alternateRecipes", "title image")
       .populate("meals.emptyStomach.recipes", "title image")
       .populate("meals.emptyStomach.alternateRecipes", "title image")
+      .populate("meals.evening.recipes", "title image")
+      .populate("meals.evening.alternateRecipes", "title image")
+      .populate("meals.beforeBed.recipes", "title image")
+      .populate("meals.beforeBed.alternateRecipes", "title image")
       .populate("workouts.subVideos.workoutId", "title level duration videoUrl isPeriodFriendly")
       .populate("workouts.followAlongFullVideo", "title duration videoUrl image isPeriodFriendly")
       .exec();
 
-    res.json({ message: "Data fetched successfully", data: dailyPlans });
+    res.json({
+      message: "Data fetched successfully",
+      data: dailyPlans,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit),
+    });
   } catch (err) {
-    res.status(400).send("Error: " + err.message);
+    res.status(400).json({ message: "Error: " + err.message });
   }
 });
+
 
 // router.get("/", async (req, res) => {
 //   try {

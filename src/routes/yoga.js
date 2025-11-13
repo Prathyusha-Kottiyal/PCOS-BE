@@ -7,14 +7,31 @@ router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 50;
+
+    // Enforce max limit to prevent huge queries
     if (limit > 50) {
       limit = 50;
     }
+
     const skip = (page - 1) * limit;
-    const yoga = await Yoga.find({}).skip(skip).limit(limit);
-    res.json({ message: "data fetched successfully", data: yoga });
+
+    // Get total document count for pagination
+    const totalCount = await Yoga.countDocuments({});
+
+    // Fetch paginated results
+    const yoga = await Yoga.find({})
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      message: "Data fetched successfully",
+      data: yoga,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit),
+    });
   } catch (err) {
-    res.status(400).send("Error :" + err.message);
+    res.status(400).json({ message: "Error: " + err.message });
   }
 });
 

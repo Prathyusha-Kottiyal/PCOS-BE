@@ -11,12 +11,25 @@ router.get("/", async (req, res) => {
       limit = 50;
     }
     const skip = (page - 1) * limit;
+
+    // Fetch total count for pagination
+    const totalCount = await Recipes.countDocuments({});
+
+    // Fetch paginated data
     const recipes = await Recipes.find({}).skip(skip).limit(limit);
-    res.json({ message: "data fetched successfully", data: recipes });
+
+    res.json({
+      message: "Data fetched successfully",
+      data: recipes,
+      totalCount, // <-- added for FE pagination
+      page,
+      totalPages: Math.ceil(totalCount / limit),
+    });
   } catch (err) {
-    res.status(400).send("Error :" + err.message);
+    res.status(400).json({ message: "Error: " + err.message });
   }
 });
+
 router.get("/search", async (req, res) => {
   try {
     const { query } = req.query;
@@ -37,7 +50,9 @@ router.get("/search", async (req, res) => {
       data: recipes,
     });
   } catch (err) {
-    res.status(400).json({ message: "Error searching recipes: " + err.message });
+    res
+      .status(400)
+      .json({ message: "Error searching recipes: " + err.message });
   }
 });
 // GET recipe details by ID
@@ -157,14 +172,13 @@ router.delete("/:id", async (req, res) => {
 
     const deletedRecipe = await Recipes.findByIdAndDelete(id);
 
-    if (!deletedRecipe) return res.status(404).json({ message: "Recipe not found" });
+    if (!deletedRecipe)
+      return res.status(404).json({ message: "Recipe not found" });
 
     res.json({ message: "Recipe deleted successfully", data: deletedRecipe });
   } catch (err) {
     res.status(400).json({ message: "Error deleting recipe: " + err.message });
   }
 });
-
-
 
 module.exports = router;
