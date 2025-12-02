@@ -121,4 +121,25 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/random", async (req, res) => {
+  try {
+    const total = await LifestyleSuggestion.countDocuments();
+
+    if (total === 0) {
+      return res.json({ message: "No suggestions available", data: null });
+    }
+
+    const randomIndex = Math.floor(Math.random() * total);
+
+    const suggestion = await LifestyleSuggestion.findOne().skip(randomIndex);
+
+    res.json({
+      message: "Random suggestion fetched successfully",
+      data: suggestion,
+    });
+  } catch (err) {
+    res.status(400).json({ message: "Error fetching random suggestion: " + err.message });
+  }
+});
+
 module.exports = router;
