@@ -11,6 +11,7 @@ const recipesRouter = require("./routes/recipes");
 const yogaRouter = require("./routes/yoga");
 const dailyPlanRouter = require('./routes/dailyPlan');
 const progressRouter = require('./routes/progress');
+const lifeStyleRouter = require('./routes/lifeStyleSuggestion');
 
 const app = express();
 app.use(cors({
@@ -27,6 +28,7 @@ app.use("/recipes", recipesRouter);
 app.use("/yoga", yogaRouter);
 app.use("/dailyPlan", dailyPlanRouter);
 app.use('/progress',progressRouter)
+app.use('/lifeStyle',lifeStyleRouter)
 
 connectDb()
   .then(() => {

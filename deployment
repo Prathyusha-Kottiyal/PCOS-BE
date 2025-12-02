@@ -35,3 +35,4 @@ sudo nano /etc/nginx/sites-available/default
         proxy_cache_bypass $http_upgrade;
     }
 sudo systemctl restart nginx -restart nginx 
+sudo systemctl restart nginx
