@@ -6,7 +6,6 @@ const bcrypt = require("bcrypt");
 
 router.post("/signup", async (req, res) => {
   try {
-    // validation logic here
     validateSignupData(req);
 
     const {
@@ -16,16 +15,16 @@ router.post("/signup", async (req, res) => {
       dob,
       photoUrl,
       height,
-      weight,
 
-      // NEW optional measurements
+      // moving these to Progress
+      weight,
       measurements = {}
     } = req.body;
 
-    // encrypt password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // signup logic
+    // USER data (only stable fields)
     const userObject = {
       name,
       emailId,
@@ -33,38 +32,53 @@ router.post("/signup", async (req, res) => {
       dob,
       photoUrl,
       height,
-      weight,
 
-      // add optional measurements safely
-      measurements: {
-        waist: measurements.waist,
-        hip: measurements.hip,
-        chest: measurements.chest,
-        arm: measurements.arm,
-        thigh: measurements.thigh,
-        neck: measurements.neck,
-      },
-
-      resetPlan: {
-        startDate: new Date(),
-      },
+      resetPlan: { startDate: new Date() }
     };
 
-    // create new user
+    // Create USER
     const user = new User(userObject);
     await user.save();
 
+    // ========== CREATE INITIAL PROGRESS ENTRY ==========
+    const progressEntry = new Progress({
+      user: user._id,
+      date: new Date().toISOString(),
+
+      weight: weight || null,
+
+      notes: "Initial measurements from signup",
+
+      measurements: {
+        waist: measurements.waist || null,
+        hip: measurements.hip || null,
+        chest: measurements.chest || null,
+        arm: measurements.arm || null,
+        thigh: measurements.thigh || null,
+        neck: measurements.neck || null,
+      },
+
+      photoUrl:
+        "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+    });
+
+    await progressEntry.save();
+
+    // Generate token
     const token = await user.getJWT();
 
     res.status(200).json({
       message: "Registration successful",
       token,
       user,
+      initialProgress: progressEntry
     });
+
   } catch (err) {
     res.status(400).send("Error signing up user: " + err.message);
   }
 });
+
 
 // LOGIN API
 router.post("/login", async (req, res) => {

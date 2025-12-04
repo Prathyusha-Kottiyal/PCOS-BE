@@ -7,15 +7,17 @@ const progressSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+
   date: {
     type: String,
     required: true,
     validate(value) {
       if (new Date(value) > new Date()) {
-        throw new Error("Date of birth cannot be in the future");
+        throw new Error("Date cannot be in the future");
       }
     },
   },
+
   photoUrl: {
     type: String,
     default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
@@ -25,13 +27,23 @@ const progressSchema = new mongoose.Schema({
       }
     },
   },
+
   weight: { type: Number, min: 30, max: 200 },
+
+  // ⭐ Optional body measurements
+  measurements: {
+    chest: { type: Number, min: 40, max: 200 },
+    waist: { type: Number, min: 30, max: 200 },
+    hips: { type: Number, min: 40, max: 200 },
+    thigh: { type: Number, min: 20, max: 150 },
+    arm: { type: Number, min: 10, max: 100 },
+  },
+
   notes: {
     type: String,
     trim: true,
     maxLength: 200,
   },
 });
-
 
 module.exports = mongoose.model("Progress", progressSchema);

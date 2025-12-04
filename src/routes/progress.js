@@ -1,17 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const Progress = require("../models/progress");
-const { validateProgressData } = require("../utils/validation");
 const { userAuth } = require("../middlewares/auth");
 
-// Import cloudinary + storage
+// Cloudinary + Multer
 const { cloudinary, storage } = require("../config/cloudinary");
 const multer = require("multer");
-
-// Multer setup using Cloudinary storage
 const upload = multer({ storage });
 
-// ========== GET Progress ==========
 router.get("/", userAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -19,11 +15,16 @@ router.get("/", userAuth, async (req, res) => {
     if (limit > 50) limit = 50;
 
     const skip = (page - 1) * limit;
+
     const progress = await Progress.find({ user: req.user._id })
+      .sort({ date: -1 })
       .skip(skip)
       .limit(limit);
 
-    res.json({ message: "Data fetched successfully", data: progress });
+    res.json({
+      message: "Data fetched successfully",
+      data: progress,
+    });
   } catch (err) {
     res.status(400).send("Error: " + err.message);
   }
@@ -34,16 +35,28 @@ router.post("/", userAuth, upload.single("photo"), async (req, res) => {
   try {
     const { date, weight, notes } = req.body;
 
-    // Cloudinary-storage automatically uploads and sets req.file.path
-    const photoUrl = req.file?.path || null;
+    // Measurements (all optional)
+    const measurements = {
+      chest: req.body.chest,
+      waist: req.body.waist,
+      hips: req.body.hips,
+      thigh: req.body.thigh,
+      arm: req.body.arm,
+    };
 
-    console.log("Uploaded to Cloudinary:", req.file);
+    // Remove undefined values
+    Object.keys(measurements).forEach(
+      (key) => measurements[key] === undefined && delete measurements[key]
+    );
+
+    const photoUrl = req.file?.path || null;
 
     const progress = new Progress({
       user: req.user._id,
       date,
       weight,
       notes,
+      measurements,
       photoUrl,
     });
 

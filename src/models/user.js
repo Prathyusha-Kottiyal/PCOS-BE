@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
       minLength: 2,
       maxLength: 80,
     },
+
     emailId: {
       type: String,
       required: true,
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+
     password: {
       type: String,
       required: true,
@@ -33,6 +35,7 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+
     dob: {
       type: String,
       required: true,
@@ -42,6 +45,7 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+
     photoUrl: {
       type: String,
       default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
@@ -52,19 +56,11 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // ---- Existing fields ----
-    height: { type: Number, min: 100, max: 250 },
-    weight: { type: Number, min: 30, max: 200 },
+    // ---- Fixed profile info ----
+    height: { type: Number, min: 100, max: 250 }, // static — OK
 
-    // ---- NEW optional body measurements ----
-    measurements: {
-      waist: { type: Number, min: 40, max: 200 },
-      hip: { type: Number, min: 40, max: 200 },
-      chest: { type: Number, min: 40, max: 200 },
-      arm: { type: Number, min: 10, max: 80 },
-      thigh: { type: Number, min: 20, max: 120 },
-      neck: { type: Number, min: 20, max: 70 },
-    },
+    // ❌ Removed: weight (now tracked only in progress)
+    // ❌ Removed: measurements (now tracked only in progress)
 
     resetPlan: {
       startDate: { type: Date },
@@ -75,18 +71,14 @@ const userSchema = new mongoose.Schema(
 
 // JWT
 userSchema.methods.getJWT = async function () {
-  const token = await jwt.sign({ _id: this._id }, "DEV567", {
-    expiresIn: "7d",
-  });
-  return token;
+  return await jwt.sign({ _id: this._id }, "DEV567", { expiresIn: "7d" });
 };
 
 userSchema.index({ name: 1 });
 
 // Password validation
 userSchema.methods.validatePassword = async function (passwordByUser) {
-  const passwordHash = this.password;
-  return await bcrypt.compare(passwordByUser, passwordHash);
+  return bcrypt.compare(passwordByUser, this.password);
 };
 
 module.exports = mongoose.model("User", userSchema);

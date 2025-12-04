@@ -224,14 +224,16 @@ const validateDailyPlanData = (req) => {
 
   return true;
 };
-
 const validateEditProfile = (req) => {
-  const allowedUpdates = [
+  const allowedStableUpdates = [
     "name",
     "emailId",
     "dob",
     "photoUrl",
     "height",
+  ];
+
+  const allowedProgressUpdates = [
     "weight",
     "measurements",
   ];
@@ -245,17 +247,22 @@ const validateEditProfile = (req) => {
     "neck",
   ];
 
-  // Check top-level fields
-  const isTopLevelValid = Object.keys(req.body).every((field) =>
-    allowedUpdates.includes(field)
+  const bodyFields = Object.keys(req.body);
+
+  // 1️⃣ Validate top-level fields
+  const isTopLevelValid = bodyFields.every((field) =>
+    allowedStableUpdates.includes(field) ||
+    allowedProgressUpdates.includes(field)
   );
 
   if (!isTopLevelValid) return false;
 
-  // If measurements object exists → validate each field inside it
+  // 2️⃣ Validate measurement object keys (values CAN be empty)
   if (req.body.measurements) {
-    const isMeasurementsValid = Object.keys(req.body.measurements).every(
-      (mField) => allowedMeasurementFields.includes(mField)
+    const measurementFields = Object.keys(req.body.measurements);
+
+    const isMeasurementsValid = measurementFields.every((mField) =>
+      allowedMeasurementFields.includes(mField)
     );
 
     if (!isMeasurementsValid) return false;

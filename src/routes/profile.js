@@ -8,15 +8,35 @@ const {
   validateUpdatePassword,
 } = require("../utils/validation");
 
+
 router.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    if (!user) throw new Error("User not found");
-    res.send(user);
+
+    const latestProgress = await Progress.findOne({ userId: user._id })
+      .sort({ date: -1 });
+
+    const response = {
+      name: user.name,
+      emailId: user.emailId,
+      dob: user.dob,
+      photoUrl: user.photoUrl,
+
+      // height stays in Profile
+      height: user.height,
+
+      // weight + measurements come from Progress table
+      weight: latestProgress?.weight || null,
+      measurements: latestProgress?.measurements || {}
+    };
+
+    res.json(response);
+
   } catch (err) {
     res.status(400).send("Error :" + err.message);
   }
 });
+
 
 router.patch("/edit", userAuth, async (req, res) => {
   try {
@@ -27,27 +47,43 @@ router.patch("/edit", userAuth, async (req, res) => {
     const user = req.user;
     const updates = req.body;
 
-    // --- NEW: handle optional nested measurements ---
-    if (updates.measurements) {
-      user.measurements = {
-        ...user.measurements,          // keep existing values
-        ...updates.measurements,       // update only what is sent
-      };
-      delete updates.measurements;     // remove from main updates object
+    // Extract only the fields related to progress
+    const { weight, measurements, ...stableFields } = updates;
+
+    const hasProgressUpdates =
+      weight !== undefined || measurements !== undefined;
+
+    // 1️⃣ If weight or measurements is in request → add progress entry
+    if (hasProgressUpdates) {
+      await Progress.create({
+        userId: user._id,
+        date: new Date(),
+        weight: weight ?? null,
+        measurements: measurements ?? {}
+      });
     }
 
-    // Update remaining fields (name, dob, height, weight, etc.)
-    Object.keys(updates).forEach((key) => {
-      user[key] = updates[key];
+    // 2️⃣ Update stable profile fields (name, emailId, dob, photoUrl, height)
+    Object.keys(stableFields).forEach((key) => {
+      user[key] = stableFields[key];
     });
 
-    await user.save();
-    res.json({ message: "Profile updated", data: user });
+    // Save ONLY if stable fields exist
+    if (Object.keys(stableFields).length > 0) {
+      await user.save();
+    }
+
+    res.json({
+      message: "Profile updated successfully",
+      progressUpdated: hasProgressUpdates,
+      userUpdated: Object.keys(stableFields).length > 0,
+    });
 
   } catch (err) {
     res.status(400).send("Error :" + err.message);
   }
 });
+
 
 router.patch("/password", userAuth, async (req, res) => {
   try {
@@ -71,7 +107,10 @@ router.patch("/password", userAuth, async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    res.json({ message: "Password updated", data: user });
+    res.json({
+      message: "Password updated successfully",
+      data: user,
+    });
 
   } catch (err) {
     res.status(400).send("Error :" + err.message);
