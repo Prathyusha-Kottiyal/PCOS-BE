@@ -14,7 +14,7 @@ router.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
 
-    const latestProgress = await Progress.findOne({ userId: user._id })
+    const latestProgress = await Progress.findOne({ user: user._id })
       .sort({ date: -1 });
 
     const response = {
@@ -57,7 +57,7 @@ router.patch("/edit", userAuth, async (req, res) => {
     // 1️⃣ If weight or measurements is in request → add progress entry
     if (hasProgressUpdates) {
       await Progress.create({
-        userId: user._id,
+        user: user._id,
         date: new Date(),
         weight: weight ?? null,
         measurements: measurements ?? {}
