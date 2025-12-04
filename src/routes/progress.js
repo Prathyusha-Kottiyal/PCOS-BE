@@ -61,18 +61,9 @@ router.get("/", userAuth, async (req, res) => {
 // ========== POST Progress ==========
 router.post("/", userAuth, upload.single("photo"), async (req, res) => {
   try {
-    const { date, weight, notes, measurements } = req.body;
-    const measurementsParsed = JSON.parse(req.body.measurements || "{}");
-    // Measurements (all optional)
-    const measurements = {
-      chest: measurementsParsed.chest,
-      waist: measurementsParsed.waist,
-      hip: measurementsParsed.hip,
-      thigh: measurementsParsed.thigh,
-      arm: measurementsParsed.arm,
-      neck: measurementsParsed.neck,
-    };
-
+    const { date, weight, notes } = req.body;
+    const measurements = JSON.parse(req.body.measurements || "{}");
+   
     // Remove undefined values
     Object.keys(measurements).forEach(
       (key) => measurements[key] === undefined && delete measurements[key]
