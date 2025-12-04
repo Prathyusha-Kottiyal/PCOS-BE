@@ -59,7 +59,7 @@ router.patch("/edit", userAuth, async (req, res) => {
     if (hasProgressUpdates) {
       await Progress.create({
         user: user._id,
-        date: new Date(),
+        date: new Date().toISOString(),
         weight: weight ?? null,
         measurements: measurements ?? {}
       });
