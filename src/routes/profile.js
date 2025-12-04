@@ -3,6 +3,7 @@ const router = express.Router();
 const validator = require("validator");
 const bcrypt = require("bcrypt");
 const { userAuth } = require("../middlewares/auth");
+const Progress = require("../models/progress");
 const {
   validateEditProfile,
   validateUpdatePassword,
