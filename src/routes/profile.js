@@ -29,7 +29,8 @@ router.get("/view", userAuth, async (req, res) => {
 
       // weight + measurements come from Progress table
       weight: latestProgress?.weight || null,
-      measurements: latestProgress?.measurements || {}
+      measurements: latestProgress?.measurements || {},
+      lastUpdated: latestProgress ? latestProgress.date : null,
     };
 
     res.json(response);
