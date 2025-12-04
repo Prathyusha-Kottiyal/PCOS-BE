@@ -233,12 +233,38 @@ const validateEditProfile = (req) => {
     "photoUrl",
     "height",
     "weight",
+    "measurements",
   ];
-  const isAllowedEdit = Object.keys(req.body).every((field) =>
+
+  const allowedMeasurementFields = [
+    "chest",
+    "waist",
+    "hip",
+    "arm",
+    "thigh",
+    "neck",
+  ];
+
+  // Check top-level fields
+  const isTopLevelValid = Object.keys(req.body).every((field) =>
     allowedUpdates.includes(field)
   );
-  return isAllowedEdit;
+
+  if (!isTopLevelValid) return false;
+
+  // If measurements object exists → validate each field inside it
+  if (req.body.measurements) {
+    const isMeasurementsValid = Object.keys(req.body.measurements).every(
+      (mField) => allowedMeasurementFields.includes(mField)
+    );
+
+    if (!isMeasurementsValid) return false;
+  }
+
+  return true;
 };
+
+
 const validateUpdatePassword = (req) => {
   const allowedUpdates = ["newPassword", "existingPassword"];
   const isAllowedEdit = Object.keys(req.body).every((field) =>
