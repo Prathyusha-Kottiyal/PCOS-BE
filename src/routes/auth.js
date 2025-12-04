@@ -60,7 +60,7 @@ router.post("/signup", async (req, res) => {
       },
 
       photoUrl:
-        "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+        ""
     });
 
     await progressEntry.save();

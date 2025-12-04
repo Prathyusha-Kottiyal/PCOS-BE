@@ -20,9 +20,15 @@ const progressSchema = new mongoose.Schema({
 
   photoUrl: {
     type: String,
-    default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-    validate(value) {
-      if (!validator.isURL(value)) {
+    default: "",
+    validate(value) {   
+      // only validate when a value is provided
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== "" &&
+        !validator.isURL(value)
+      ) {
         throw new Error("Invalid photo URL");
       }
     },

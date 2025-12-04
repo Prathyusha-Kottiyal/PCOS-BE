@@ -8,6 +8,34 @@ const { cloudinary, storage } = require("../config/cloudinary");
 const multer = require("multer");
 const upload = multer({ storage });
 
+router.get("/visualjourney", userAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    if (limit > 50) limit = 50;
+    const skip = (page - 1) * limit;
+
+    // find entries that have a non-empty photoUrl
+    const query = {
+      user: req.user._id,
+      photoUrl: { $exists: true, $nin: [null, ""] },
+    };
+
+    const progress = await Progress.find(query)
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      message: "Visual journey fetched successfully",
+      data: progress,
+    });
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
+  }
+});
+
+
 router.get("/", userAuth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
