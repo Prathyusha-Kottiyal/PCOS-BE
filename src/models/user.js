@@ -56,11 +56,7 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // ---- Fixed profile info ----
-    height: { type: Number, min: 100, max: 250 }, // static — OK
-
-    // ❌ Removed: weight (now tracked only in progress)
-    // ❌ Removed: measurements (now tracked only in progress)
+    height: { type: Number, min: 100, max: 250 }, 
 
     resetPlan: {
       startDate: { type: Date },

@@ -22,6 +22,7 @@ router.get("/view", userAuth, async (req, res) => {
       emailId: user.emailId,
       dob: user.dob,
       photoUrl: user.photoUrl,
+      resetPlan: user.resetPlan,
 
       // height stays in Profile
       height: user.height,
