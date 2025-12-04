@@ -39,7 +39,7 @@ router.post("/", userAuth, upload.single("photo"), async (req, res) => {
     const measurements = {
       chest: req.body.chest,
       waist: req.body.waist,
-      hips: req.body.hips,
+      hip: req.body.hip,
       thigh: req.body.thigh,
       arm: req.body.arm,
     };
