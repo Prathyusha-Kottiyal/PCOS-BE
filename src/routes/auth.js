@@ -58,9 +58,7 @@ router.post("/signup", async (req, res) => {
         thigh: measurements.thigh || null,
         neck: measurements.neck || null,
       },
-
-      photoUrl:
-        ""
+      photoUrl: ""
     });
 
     await progressEntry.save();
