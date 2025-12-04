@@ -42,6 +42,7 @@ router.post("/", userAuth, upload.single("photo"), async (req, res) => {
       hip: req.body.hip,
       thigh: req.body.thigh,
       arm: req.body.arm,
+      neck: req.body.neck,
     };
 
     // Remove undefined values

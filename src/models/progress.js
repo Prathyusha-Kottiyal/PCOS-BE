@@ -30,13 +30,13 @@ const progressSchema = new mongoose.Schema({
 
   weight: { type: Number, min: 30, max: 200 },
 
-  // ⭐ Optional body measurements
   measurements: {
     chest: { type: Number, min: 40, max: 200 },
     waist: { type: Number, min: 30, max: 200 },
     hip: { type: Number, min: 40, max: 200 },
     thigh: { type: Number, min: 20, max: 150 },
     arm: { type: Number, min: 10, max: 100 },
+    neck: { type: Number, min: 10, max: 100 },
   },
 
   notes: {
