@@ -11,15 +11,13 @@ const {
 router.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    // Fetch user profile logic here
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) throw new Error("User not found");
     res.send(user);
   } catch (err) {
     res.status(400).send("Error :" + err.message);
   }
 });
+
 router.patch("/edit", userAuth, async (req, res) => {
   try {
     if (!validateEditProfile(req)) {
@@ -28,12 +26,24 @@ router.patch("/edit", userAuth, async (req, res) => {
 
     const user = req.user;
     const updates = req.body;
-    // Update user profile logic here
+
+    // --- NEW: handle optional nested measurements ---
+    if (updates.measurements) {
+      user.measurements = {
+        ...user.measurements,          // keep existing values
+        ...updates.measurements,       // update only what is sent
+      };
+      delete updates.measurements;     // remove from main updates object
+    }
+
+    // Update remaining fields (name, dob, height, weight, etc.)
     Object.keys(updates).forEach((key) => {
       user[key] = updates[key];
     });
+
     await user.save();
-    res.json({ message: "test message", data: user });
+    res.json({ message: "Profile updated", data: user });
+
   } catch (err) {
     res.status(400).send("Error :" + err.message);
   }
@@ -44,20 +54,25 @@ router.patch("/password", userAuth, async (req, res) => {
     if (!validateUpdatePassword(req)) {
       throw new Error("Invalid updates!");
     }
+
     const user = req.user;
-    const updates = req.body;
-    const isPasswordMatch = await user.validatePassword(updates.existingPassword);
-    if(!isPasswordMatch){   
+    const { existingPassword, newPassword } = req.body;
+
+    const isPasswordMatch = await user.validatePassword(existingPassword);
+    if (!isPasswordMatch) {
       throw new Error("Existing password is incorrect");
     }
-    if (!validator.isStrongPassword(updates.newPassword)) {
+
+    if (!validator.isStrongPassword(newPassword)) {
       throw new Error("Not a strong password");
     }
-    const hasedPassword=await bcrypt.hash(updates.newPassword, 10); 
-    // Update user password logic here
-    user.password = hasedPassword; 
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
     await user.save();
-    res.json({ message: "password updated", data: user });
+
+    res.json({ message: "Password updated", data: user });
+
   } catch (err) {
     res.status(400).send("Error :" + err.message);
   }
