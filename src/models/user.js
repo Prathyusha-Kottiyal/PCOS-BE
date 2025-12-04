@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
     },
 
     photoUrl: {
+      type: String,
       default: "",
       validate(value) {
         // only validate when a value is provided
