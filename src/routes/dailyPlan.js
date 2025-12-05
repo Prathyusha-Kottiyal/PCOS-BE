@@ -119,6 +119,8 @@ router.get("/:day", async (req, res) => {
       .populate("meals.dinner.recipes", "title image")
       .populate("meals.midMorning.recipes", "title image")
       .populate("meals.dinner.alternateRecipes", "title image")
+      .populate("meals.evening.recipes", "title image")
+      .populate("meals.evening.alternateRecipes", "title image")
       .populate("meals.beforeBed.recipes", "title image")
       .populate("meals.beforeBed.alternateRecipes", "title image")
       .populate("meals.emptyStomach.recipes", "title image")
