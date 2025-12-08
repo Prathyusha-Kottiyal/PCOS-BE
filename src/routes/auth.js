@@ -115,41 +115,47 @@ router.post("/logout", async (req, res) => {
 });
 
 // DELETE ACCOUNT + DELETE ALL USER DATA
+
 router.delete("/delete-account", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
 
     const extractPublicId = (url) => {
-      const path = url.split("/upload/")[1];
-      const parts = path.split("/");
+      if (!url) return null;
 
-      parts.shift(); // remove the version folder like "v1762936478"
+      // Remove version
+      const afterVersion = url.split(/\/v\d+\//)[1];
+      if (!afterVersion) return null;
 
-      const fullPath = parts.join("/");
-      return fullPath.replace(/\.[^/.]+$/, ""); // remove file extension
+      // Remove file extension
+      return afterVersion.replace(/\.[^/.]+$/, "");
     };
 
-    // 1. Delete progress photos
+    // 1. Progress photos
     const progressEntries = await Progress.find({ user: userId });
     for (const entry of progressEntries) {
       if (entry.photoUrl) {
         const publicId = extractPublicId(entry.photoUrl);
-        await cloudinary.uploader.destroy(publicId);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
       }
     }
 
-    // 2. Delete profile photo
+    // 2. User profile photo
     if (req.user.photoUrl) {
       const publicId = extractPublicId(req.user.photoUrl);
-      await cloudinary.uploader.destroy(publicId);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId);
+      }
     }
 
     // 3. Delete DB entries
     await Progress.deleteMany({ user: userId });
     await User.findByIdAndDelete(userId);
 
-    res.status(200).json({
-      message: "Account, photos, and all associated data deleted successfully",
+    res.json({
+      message: "Account + all photos deleted successfully",
       deletedUser: userId
     });
 
@@ -158,6 +164,7 @@ router.delete("/delete-account", userAuth, async (req, res) => {
     res.status(400).send("Error deleting account: " + err.message);
   }
 });
+
 
 
 
