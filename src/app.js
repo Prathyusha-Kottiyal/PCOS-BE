@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDb = require("./config/database");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 const cors = require("cors");
 // const PORT = process.env.PORT || 3000;
 const PORT =  3000;
@@ -29,6 +30,10 @@ app.use("/yoga", yogaRouter);
 app.use("/dailyPlan", dailyPlanRouter);
 app.use('/progress',progressRouter)
 app.use('/lifeStyle',lifeStyleRouter)
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/delete-account-page", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "delete-account.html"));
+});
 
 connectDb()
   .then(() => {
