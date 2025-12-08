@@ -148,6 +148,22 @@ router.patch("/:id", userAuth, upload.single("photo"), async (req, res) => {
 });
 
 // ========== DELETE Progress ==========
+// helper to extract cloudinary public_id
+function getCloudinaryPublicId(url) {
+  if (!url || typeof url !== "string") return null;
+
+  // must contain Cloudinary domain
+  if (!url.includes("res.cloudinary.com") && !url.includes("cloudinary.com")) {
+    return null;
+  }
+
+  // extract part after /upload/, allow optional version (v123/)
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?(?:$|\?)/);
+  if (!match || !match[1]) return null;
+
+  return match[1]; // e.g. folder/filename or just filename
+}
+
 router.delete("/:id", userAuth, async (req, res) => {
   try {
     const progress = await Progress.findOne({
@@ -159,21 +175,34 @@ router.delete("/:id", userAuth, async (req, res) => {
       return res.status(404).json({ message: "Progress entry not found" });
     }
 
-    // Delete photo from Cloudinary if exists
-    if (progress.photoUrl) {
-      const publicId = progress.photoUrl
-        .split("/")
-        .slice(-1)[0]
-        .split(".")[0];
+    let deletedPhoto = null;
+    let skippedPhoto = null;
 
-      await cloudinary.uploader.destroy(publicId);
+    // delete Cloudinary image if present
+    if (progress.photoUrl) {
+      const publicId = getCloudinaryPublicId(progress.photoUrl);
+
+      if (publicId) {
+        try {
+          const result = await cloudinary.uploader.destroy(publicId);
+          deletedPhoto = { publicId, result };
+        } catch (error) {
+          console.error("Cloudinary delete error:", error);
+          skippedPhoto = { url: progress.photoUrl, reason: error.message };
+        }
+      } else {
+        skippedPhoto = { url: progress.photoUrl, reason: "Invalid or non-cloudinary URL" };
+      }
     }
 
+    // delete progress from DB
     await Progress.deleteOne({ _id: progress._id });
 
     res.json({
       message: "Progress entry deleted successfully",
       id: progress._id,
+      deletedPhoto,
+      skippedPhoto,
     });
 
   } catch (err) {
