@@ -166,6 +166,49 @@ router.delete("/delete-account", userAuth, async (req, res) => {
 });
 
 
+// DELETE ACCOUNT via EMAIL (for web page)
+router.delete("/delete-account-web", async (req, res) => {
+  try {
+    const { emailId } = req.body;
+    if (!emailId) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ emailId });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const userId = user._id;
+
+    const extractPublicId = (url) => {
+      if (!url) return null;
+      const afterVersion = url.split(/\/v\d+\//)[1];
+      if (!afterVersion) return null;
+      return afterVersion.replace(/\.[^/.]+$/, "");
+    };
+
+    // Delete progress photos
+    const progressEntries = await Progress.find({ user: userId });
+    for (const entry of progressEntries) {
+      if (entry.photoUrl) {
+        const publicId = extractPublicId(entry.photoUrl);
+        if (publicId) await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    // Delete user profile photo
+    if (user.photoUrl) {
+      const publicId = extractPublicId(user.photoUrl);
+      if (publicId) await cloudinary.uploader.destroy(publicId);
+    }
+
+    // Delete DB entries
+    await Progress.deleteMany({ user: userId });
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "Account and all associated data deleted successfully." });
+  } catch (err) {
+    console.error("Delete error (web):", err);
+    res.status(500).json({ message: "Error deleting account: " + err.message });
+  }
+});
 
 
 module.exports = router;
