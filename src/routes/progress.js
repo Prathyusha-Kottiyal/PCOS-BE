@@ -147,8 +147,7 @@ router.patch("/:id", userAuth, upload.single("photo"), async (req, res) => {
   }
 });
 
-// ========== DELETE Progress ==========
-// helper to extract cloudinary public_id
+
 function getCloudinaryPublicId(url) {
   if (!url || typeof url !== "string") return null;
 

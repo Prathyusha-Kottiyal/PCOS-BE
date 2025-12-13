@@ -13,6 +13,7 @@ const yogaRouter = require("./routes/yoga");
 const dailyPlanRouter = require('./routes/dailyPlan');
 const progressRouter = require('./routes/progress');
 const lifeStyleRouter = require('./routes/lifeStyleSuggestion');
+const userlifeStyleRouter = require('./routes/userLifeStyle');
 
 const app = express();
 app.use(cors({
@@ -30,6 +31,9 @@ app.use("/yoga", yogaRouter);
 app.use("/dailyPlan", dailyPlanRouter);
 app.use('/progress',progressRouter)
 app.use('/lifeStyle',lifeStyleRouter)
+app.use('/userlifeStyle',userlifeStyleRouter);
+
+// Serve static files and HTML for account deletion confirmation
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/delete-account-page", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "delete-account.html"));
