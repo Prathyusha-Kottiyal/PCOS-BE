@@ -22,9 +22,10 @@ const PeriodCycleSchema = new mongoose.Schema(
 
     // Calculated fields
     cycleLength: {
-      type: Number, // start-to-start
+      type: Number,
       min: 10,
       max: 90,
+      default: null,
     },
 
     periodLength: {

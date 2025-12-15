@@ -43,25 +43,27 @@ router.post("/cycles", userAuth, async (req, res) => {
     let periodLength = null;
     if (periodEnd) {
       const diff =
-        (new Date(periodEnd) - new Date(periodStart)) /
-          (1000 * 60 * 60 * 24) +
+        (new Date(periodEnd) - new Date(periodStart)) / (1000 * 60 * 60 * 24) +
         1;
       periodLength = Math.max(1, Math.round(diff));
     }
 
-    // find last cycle to calculate cycle length
-    const lastCycle = await PeriodCycle.findOne({
+    const previousCycle = await PeriodCycle.findOne({
       userId: req.user._id,
+      periodStart: { $lt: new Date(periodStart) },
     }).sort({ periodStart: -1 });
 
     let cycleLength = null;
-    if (lastCycle) {
-      const diff =
-        (new Date(periodStart) - new Date(lastCycle.periodStart)) /
-        (1000 * 60 * 60 * 24);
-      cycleLength = Math.round(diff);
-    }
 
+    if (previousCycle) {
+      const diff =
+        (new Date(periodStart) - new Date(previousCycle.periodStart)) /
+        (1000 * 60 * 60 * 24);
+
+      if (diff >= 10 && diff <= 90) {
+        cycleLength = Math.round(diff);
+      }
+    }
     const cycle = new PeriodCycle({
       userId: req.user._id,
       periodStart,
@@ -192,15 +194,7 @@ router.get("/logs/:cycleId", userAuth, async (req, res) => {
  */
 router.post("/logs", userAuth, async (req, res) => {
   try {
-    const {
-      cycleId,
-      date,
-      flow,
-      painLevel,
-      mood,
-      symptoms,
-      notes,
-    } = req.body;
+    const { cycleId, date, flow, painLevel, mood, symptoms, notes } = req.body;
 
     if (!cycleId || !date) {
       return res.status(400).json({
