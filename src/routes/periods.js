@@ -243,4 +243,23 @@ router.get("/profile", userAuth, async (req, res) => {
   }
 });
 
+router.get("/today", userAuth, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isPeriodDay = await PeriodCycle.exists({
+      userId: req.user._id,
+      periodStart: { $lte: today },
+      periodEnd: { $gte: today },
+    });
+
+    res.json({
+      isPeriodDay: Boolean(isPeriodDay),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
