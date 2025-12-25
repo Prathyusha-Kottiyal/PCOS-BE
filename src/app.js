@@ -25,6 +25,12 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Serve static files and HTML for account deletion confirmation
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/delete-account-page", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "delete-account.html"));
+});
+
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/recipes", recipesRouter);
@@ -35,11 +41,6 @@ app.use('/lifeStyle',lifeStyleRouter)
 app.use('/userlifeStyle',userlifeStyleRouter);
 app.use('/periods',userPeriodRouter);
 
-// Serve static files and HTML for account deletion confirmation
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/delete-account-page", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "delete-account.html"));
-});
 
 connectDb()
   .then(() => {
