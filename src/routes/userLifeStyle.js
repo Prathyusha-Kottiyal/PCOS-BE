@@ -51,17 +51,37 @@ router.post("/", userAuth, async (req, res) => {
       reminderEnabled,
     } = req.body;
 
-    // validate suggestion exists
-    const suggestion = await LifestyleSuggestion.findById(
-      lifestyleSuggestionId
-    );
-    if (!suggestion) {
-      return res.status(404).json({
-        message: "Lifestyle suggestion not found",
-      });
+    // 1. Check if an entry (active or inactive) already exists
+    let routine = await UserLifestyleRoutine.findOne({
+      userId: req.user._id,
+      lifestyleSuggestionId,
+    });
+
+    if (routine) {
+      // If it exists but is inactive, reactivate and update it
+      if (!routine.isActive) {
+        routine.isActive = true;
+        routine.repeat = repeat;
+        routine.preferredTime = preferredTime;
+        routine.preferredTimeSlot = preferredTimeSlot;
+        routine.duration = duration;
+        routine.reminderEnabled = reminderEnabled;
+        
+        await routine.save();
+        return res.status(200).json({
+          message: "Routine reactivated successfully",
+          data: routine,
+        });
+      } else {
+        // If it's already active, return the conflict error
+        return res.status(409).json({
+          message: "This routine is already active in your list",
+        });
+      }
     }
 
-    const routine = new UserLifestyleRoutine({
+    // 2. If no entry exists at all, create a new one
+    const newRoutine = new UserLifestyleRoutine({
       userId: req.user._id,
       lifestyleSuggestionId,
       repeat,
@@ -71,19 +91,13 @@ router.post("/", userAuth, async (req, res) => {
       reminderEnabled,
     });
 
-    await routine.save();
+    await newRoutine.save();
 
     res.status(201).json({
       message: "Routine added successfully",
-      data: routine,
+      data: newRoutine,
     });
   } catch (err) {
-    if (err.code === 11000) {
-      return res.status(409).json({
-        message: "This routine already exists for the user",
-      });
-    }
-
     res.status(400).json({ message: err.message });
   }
 });
@@ -140,23 +154,18 @@ router.patch("/:id", userAuth, async (req, res) => {
  */
 router.delete("/:id", userAuth, async (req, res) => {
   try {
-    const routine = await UserLifestyleRoutine.findOne({
+    const result = await UserLifestyleRoutine.findOneAndDelete({
       _id: req.params.id,
       userId: req.user._id,
     });
 
-    if (!routine) {
-      return res.status(404).json({
-        message: "Routine not found",
-      });
+    if (!result) {
+      return res.status(404).json({ message: "Routine not found" });
     }
 
-    routine.isActive = false;
-    await routine.save();
-
     res.json({
-      message: "Routine removed successfully",
-      id: routine._id,
+      message: "Routine deleted permanently",
+      id: req.params.id,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
